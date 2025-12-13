@@ -1,0 +1,7 @@
+export const GRADIENT_BG = "bg-[#030014] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]";
+export const GLASS_PANEL = "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl relative overflow-hidden";
+export const CARD_STYLE = "bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl hover:border-pink-500/30 transition-all duration-300";
+export const BUTTON_PRIMARY = "w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(236,72,153,0.3)] flex items-center justify-center gap-2 font-tech tracking-wide uppercase";
+export const BUTTON_SECONDARY = "w-full bg-white/5 hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2 font-tech tracking-wide uppercase hover:border-white/20";
+export const INPUT_STYLE = "w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-pink-500/50 focus:shadow-[0_0_15px_rgba(236,72,153,0.2)] transition-all font-tech";
+export const NEON_TEXT = "text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 drop-shadow-[0_0_10px_rgba(192,132,252,0.3)]";
