@@ -45,13 +45,14 @@ const App: React.FC = () => {
   const isStudioMode = currentPage === 'video_studio';
 
   return (
-    <div className={`min-h-screen ${isStudioMode ? 'bg-[#0f1115]' : GRADIENT_BG} flex flex-col ${isStudioMode ? '' : 'items-center justify-center p-4'} overflow-hidden relative font-sans transition-colors duration-500`}>
+    <div className={`min-h-screen ${isStudioMode ? 'bg-[#050505]' : GRADIENT_BG} flex flex-col ${isStudioMode ? '' : 'items-center justify-center p-4'} overflow-hidden relative font-sans transition-colors duration-500`}>
       {/* Background Decorative Elements (Only for non-studio pages) */}
       {!isStudioMode && (
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-[-10%] left-[20%] w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+          {/* Updated blobs for Dark Mode visibility (Screen blending instead of Multiply) */}
+          <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-pink-600/20 rounded-full blur-[100px] animate-blob"></div>
+          <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
         </div>
       )}
 
@@ -62,8 +63,8 @@ const App: React.FC = () => {
       
       {/* Footer Branding (Hidden in Studio) */}
       {!isStudioMode && (
-        <div className="absolute bottom-4 text-white/20 text-xs z-0">
-          Powered by VIKI AI
+        <div className="absolute bottom-4 text-white/10 text-[10px] z-0 font-tech tracking-[0.2em] uppercase">
+          System Core: VIKI v3.0
         </div>
       )}
 
@@ -76,7 +77,7 @@ const App: React.FC = () => {
           100% { transform: translate(0px, 0px) scale(1); }
         }
         .animate-blob {
-          animation: blob 7s infinite;
+          animation: blob 10s infinite;
         }
         .animation-delay-2000 {
           animation-delay: 2s;
@@ -85,14 +86,28 @@ const App: React.FC = () => {
           animation-delay: 4s;
         }
         .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
+          animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-        .animate-bounce-slow {
-            animation: bounce 3s infinite;
+        .animate-shine {
+            animation: shine 1.5s infinite linear;
+        }
+        .animate-spin-slow {
+            animation: spin 3s linear infinite;
+        }
+        .scrolling-text {
+            animation: scroll 10s linear infinite;
         }
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) skewX(12deg); }
+            100% { transform: translateX(200%) skewX(12deg); }
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
         /* Hide scrollbar for Chrome, Safari and Opera */
         .scrollbar-hide::-webkit-scrollbar {

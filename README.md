@@ -1,20 +1,86 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# VIKI AI WORLD 🌐✨
 
-# Run and deploy your AI Studio app
+> **Future World Operating System**  
+> A dangerous, stylish, and professional mobile-first web application featuring AI tools, a social reel feed, video studio, and website builder.
 
-This contains everything you need to run your app locally.
+![VIKI AI Banner](https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1200&auto=format&fit=crop)
 
-View your app in AI Studio: https://ai.studio/apps/drive/14ifVkIu6Dz_8cux_H4bpDG5ngfagS2Wx
+## 🚀 Features
 
-## Run Locally
+### 🧠 VIKI Neural Link (AI Chat)
+- Powered by Google Gemini 2.5 Flash.
+- Witty, Roman Urdu/English mix personality.
+- Real-time responses with a cyberpunk UI.
 
-**Prerequisites:**  Node.js
+### 🎬 VIKI Studio (NLE Video Editor)
+- Professional Non-Linear Editor interface.
+- Timeline visualization.
+- Settings for 4K/1080p rendering.
+- AI-driven video generation simulation.
 
+### 📱 Social VIKI
+- Vertical "Reels" style feed.
+- "For You" and "Following" tabs.
+- Interactive Like, Comment, and Share buttons.
+- Immersive full-screen media experience.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 💻 Web.Dev Builder
+- Visual vs Code view toggle.
+- IDE-like interface with syntax highlighting simulation.
+- AI-assisted website generation tools.
+
+### 🛡️ System & Security
+- Bio-metric login simulation.
+- Real-time simulated System Status (CPU, RAM, Network).
+- Gamified User Profile with Leveling system (XP, Ranks).
+
+## 🛠️ Tech Stack
+
+- **Framework**: React 18
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **AI Model**: Google GenAI SDK (Gemini 2.5 Flash)
+- **Fonts**: Inter (UI) & Rajdhani (Tech/HUD)
+
+## 📦 Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/your-username/viki-ai-world.git
+    cd viki-ai-world
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Set up Environment Variables**
+    Create a `.env` file in the root directory and add your Gemini API Key:
+    ```env
+    API_KEY=your_google_genai_api_key_here
+    ```
+
+4.  **Run the App**
+    ```bash
+    npm start
+    ```
+
+## 🎨 Design Philosophy
+
+**"Dangerous Stylish Professional"**
+- **Deep Black Theme**: `#030014` background with heavy usage of glassmorphism.
+- **Neon Accents**: Pink (`#ff0055`) and Cyan (`#00e5ff`) highlights.
+- **HUD Elements**: Data visualization and system stats for a Sci-Fi feel.
+
+## 🤝 Contributing
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+---
+
+*Powered by VIKI AI v3.0*
