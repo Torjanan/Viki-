@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { NavigationProps } from '../types';
 import { CARD_STYLE, GLASS_PANEL, BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT_STYLE, NEON_TEXT } from '../constants';
@@ -10,7 +10,7 @@ import {
   CheckCircle, Scan, Monitor, FileVideo, Ratio, Globe, Plus, Image as ImageIcon,
   Code, Layers, Wifi, Battery, Signal, Mic, X, MoreVertical, Music2, Terminal,
   Cpu, Activity, Disc, GripHorizontal, ChevronRight, Minimize2, Maximize2, Trash2,
-  Search, Pause, Volume2, VolumeX
+  Search, Pause, Volume2, VolumeX, Github, Chrome
 } from 'lucide-react';
 
 // --- SHARED COMPONENTS ---
@@ -82,25 +82,53 @@ export const AuthScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleAuthAction = () => {
+    setError('');
+    
+    // Basic Validation
+    if (authMode !== 'forgot' && (!email || !password)) {
+        setError("CREDENTIALS MISSING");
+        return;
+    }
+    if (authMode === 'forgot' && !email) {
+        setError("ENTER COMMS ID");
+        return;
+    }
+
     setIsLoading(true);
+    
+    // Simulated Backend Delay
     setTimeout(() => {
         setIsLoading(false);
         if (authMode === 'forgot') {
             setAuthMode('login');
+            alert("Recovery signal sent to comms ID.");
         } else {
+            // Success
+            localStorage.setItem('viki_user_session', 'active');
             onNavigate('home');
         }
     }, 1500);
   };
 
+  const handleSocialLogin = (provider: string) => {
+      setIsLoading(true);
+      setTimeout(() => {
+          setIsLoading(false);
+          onNavigate('home');
+      }, 1000);
+  };
+
   return (
     <div className="w-full max-w-md animate-fadeIn p-4 h-[100dvh] flex flex-col">
       <StatusBar />
-      <div className="mt-16 flex-1 flex flex-col justify-center">
+      <div className="mt-10 flex-1 flex flex-col justify-center">
           <div className={`${GLASS_PANEL} p-8`}>
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-3xl font-bold font-tech text-white uppercase tracking-wide">
                         {authMode === 'login' ? 'Access' : authMode === 'register' ? 'Join' : 'Recover'}
@@ -112,9 +140,15 @@ export const AuthScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
                 </div>
             </div>
 
-            <div className="space-y-5">
+            {error && (
+                <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-400 px-3 py-2 rounded-lg text-xs font-bold font-mono animate-pulse">
+                    ⚠️ {error}
+                </div>
+            )}
+
+            <div className="space-y-4">
               {authMode === 'register' && (
-                <div className="group">
+                <div className="group animate-fadeIn">
                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block ml-1">Identity</label>
                     <div className="relative">
                         <User className="absolute left-3 top-3.5 text-pink-500" size={18}/>
@@ -127,17 +161,25 @@ export const AuthScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
                 <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block ml-1">Comms ID</label>
                 <div className="relative">
                     <Mail className="absolute left-3 top-3.5 text-cyan-400" size={18}/>
-                    <input type="email" placeholder="user@viki.ai" className={`${INPUT_STYLE} pl-10`} />
+                    <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="user@viki.ai" 
+                        className={`${INPUT_STYLE} pl-10`} 
+                    />
                 </div>
               </div>
 
               {authMode !== 'forgot' && (
-                <div>
+                <div className="animate-fadeIn">
                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block ml-1">Passcode</label>
                     <div className="relative">
                         <Lock className="absolute left-3 top-3.5 text-purple-400" size={18}/>
                         <input 
                             type={showPassword ? "text" : "password"} 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••" 
                             className={`${INPUT_STYLE} pl-10 pr-10`} 
                         />
@@ -154,7 +196,7 @@ export const AuthScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
               <button 
                 onClick={handleAuthAction} 
                 disabled={isLoading}
-                className={`${BUTTON_PRIMARY} mt-8 relative overflow-hidden group`}
+                className={`${BUTTON_PRIMARY} mt-6 relative overflow-hidden group`}
               >
                 {isLoading && (
                     <div className="absolute inset-0 bg-white/20 skew-x-12 translate-x-[-100%] group-hover:animate-shine" />
@@ -167,9 +209,30 @@ export const AuthScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
                     </>
                 )}
               </button>
+
+              {/* Social Login Options */}
+              {authMode !== 'forgot' && (
+                  <>
+                    <div className="flex items-center gap-2 my-4">
+                        <div className="h-[1px] bg-white/10 flex-1"></div>
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">Or Link via</span>
+                        <div className="h-[1px] bg-white/10 flex-1"></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => handleSocialLogin('github')} className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 flex items-center justify-center gap-2 transition-colors">
+                            <Github size={18} className="text-white"/>
+                            <span className="text-xs font-bold text-gray-300">GitHub</span>
+                        </button>
+                        <button onClick={() => handleSocialLogin('google')} className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 flex items-center justify-center gap-2 transition-colors">
+                            <Chrome size={18} className="text-white"/> 
+                            <span className="text-xs font-bold text-gray-300">Google</span>
+                        </button>
+                    </div>
+                  </>
+              )}
             </div>
 
-            <div className="mt-8 flex justify-center gap-6 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+            <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
                 {authMode === 'login' ? (
                     <>
                         <button onClick={() => setAuthMode('register')} className="hover:text-pink-400 transition-colors">Register</button>
@@ -218,7 +281,7 @@ export const HomeScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
       <StatusBar />
       
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-4 pt-12 pb-24 no-scrollbar space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 pt-12 pb-24 no-scrollbar space-y-5 scroll-smooth">
         
         {/* Header Widget */}
         <div className="flex items-center justify-between py-2">
@@ -349,9 +412,10 @@ export const HomeScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
 export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'for_you' | 'following'>('for_you');
   const [muted, setMuted] = useState(true);
+  const [likedVideo, setLikedVideo] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Real stock video URLs for testing
+  // Real stock video URLs (Vertical format preferred)
   const videos = [
     {
       id: 1,
@@ -379,6 +443,15 @@ export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
       likes: "45K",
       comments: "2.1K",
       shares: "5K"
+    },
+     {
+      id: 4,
+      url: "https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-city-street-at-night-42171-large.mp4",
+      user: "night_walker",
+      desc: "Walking through sector 7. It's quiet tonight. ☔️ #rain #city #viki",
+      likes: "22K",
+      comments: "1.2K",
+      shares: "3K"
     }
   ];
 
@@ -394,7 +467,7 @@ export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
         const video = entry.target.querySelector('video');
         if (video) {
           if (entry.isIntersecting) {
-            video.play().catch(e => console.log("Auto-play prevented"));
+            video.play().catch(e => console.log("Auto-play prevented (User must interact first)"));
           } else {
             video.pause();
             video.currentTime = 0; // Reset video when scrolled away
@@ -409,18 +482,28 @@ export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
     return () => observer.disconnect();
   }, []);
 
-  const handleVideoTap = (e: React.MouseEvent<HTMLVideoElement>) => {
+  const lastTap = useRef<number>(0);
+  const handleVideoTap = (e: React.MouseEvent<HTMLVideoElement>, id: number) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap.current;
     const video = e.currentTarget;
-    if (video.muted) {
-        setMuted(false);
-        video.muted = false;
+
+    if (tapLength < 300 && tapLength > 0) {
+        // Double Tap
+        setLikedVideo(id);
+        setTimeout(() => setLikedVideo(null), 1000);
+        // Add Simulated Like Logic Here
     } else {
-        if (video.paused) {
-            video.play();
+        // Single Tap
+        if (video.muted) {
+             setMuted(false);
+             video.muted = false;
         } else {
-            video.pause();
+             if (video.paused) video.play();
+             else video.pause();
         }
     }
+    lastTap.current = currentTime;
   };
 
   return (
@@ -461,14 +544,23 @@ export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
               loop
               muted={muted}
               playsInline
-              onClick={handleVideoTap}
+              webkit-playsinline="true"
+              onClick={(e) => handleVideoTap(e, item.id)}
             />
 
-            {/* Mute Indicator Overlay */}
+            {/* Double Tap Heart Animation */}
+            {likedVideo === item.id && (
+                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+                     <Heart size={100} className="text-pink-500 fill-pink-500 animate-ping-once drop-shadow-2xl"/>
+                 </div>
+            )}
+
+            {/* Mute Indicator Overlay (Initially Visible) */}
             {muted && (
-                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
                      <div className="bg-black/40 p-4 rounded-full backdrop-blur-sm animate-pulse">
                         <VolumeX size={32} className="text-white/80"/>
+                        <span className="text-[10px] text-white/80 block text-center mt-1">TAP TO UNMUTE</span>
                      </div>
                  </div>
             )}
@@ -490,7 +582,7 @@ export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
 
                {/* Like */}
                <div className="flex flex-col items-center gap-1 cursor-pointer group">
-                  <Heart size={32} className="text-white fill-white/10 group-hover:fill-pink-500 group-hover:text-pink-500 transition-colors drop-shadow-lg"/>
+                  <Heart size={32} className={`transition-colors drop-shadow-lg ${likedVideo === item.id ? 'text-pink-500 fill-pink-500' : 'text-white fill-white/10 group-hover:fill-pink-500 group-hover:text-pink-500'}`}/>
                   <span className="text-white text-xs font-bold drop-shadow-md">{item.likes}</span>
                </div>
                

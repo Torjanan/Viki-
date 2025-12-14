@@ -28,6 +28,7 @@
               'shine': 'shine 1.5s infinite linear',
               'spin-slow': 'spin 3s linear infinite',
               'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'ping-once': 'ping 0.5s cubic-bezier(0, 0, 0.2, 1) 1',
             }
           }
         }
@@ -36,6 +37,7 @@
     <style>
       html {
         scroll-behavior: smooth;
+        overscroll-behavior-y: none; /* Prevents pull-to-refresh on mobile */
       }
       body {
         background-color: #030014;
@@ -44,6 +46,7 @@
         padding: 0;
         overflow: hidden; /* Prevent body scroll, handle in app */
         -webkit-tap-highlight-color: transparent;
+        font-family: 'Inter', sans-serif;
       }
       /* Hide scrollbar globally for app-like feel, but allow scrolling */
       .no-scrollbar::-webkit-scrollbar {
@@ -64,6 +67,10 @@
       ::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.2);
         border-radius: 2px;
+      }
+      video {
+        /* Prevents default video controls on some mobiles */
+        pointer-events: auto; 
       }
     </style>
   <script type="importmap">
