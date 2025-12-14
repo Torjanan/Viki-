@@ -45,7 +45,7 @@ const App: React.FC = () => {
   const isStudioMode = currentPage === 'video_studio';
 
   return (
-    <div className={`min-h-screen ${isStudioMode ? 'bg-[#050505]' : GRADIENT_BG} flex flex-col ${isStudioMode ? '' : 'items-center justify-center p-4'} overflow-hidden relative font-sans transition-colors duration-500`}>
+    <div className={`min-h-[100dvh] ${isStudioMode ? 'bg-[#050505]' : GRADIENT_BG} flex flex-col ${isStudioMode ? '' : 'items-center justify-center p-4'} overflow-hidden relative font-sans transition-colors duration-500`}>
       {/* Background Decorative Elements (Only for non-studio pages) */}
       {!isStudioMode && (
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">

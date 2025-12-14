@@ -9,13 +9,14 @@ import {
   Fingerprint, ArrowLeft, Mail, Lock, Eye, EyeOff, UserPlus, RefreshCw, Zap,
   CheckCircle, Scan, Monitor, FileVideo, Ratio, Globe, Plus, Image as ImageIcon,
   Code, Layers, Wifi, Battery, Signal, Mic, X, MoreVertical, Music2, Terminal,
-  Cpu, Activity, Disc, GripHorizontal, ChevronRight, Minimize2, Maximize2
+  Cpu, Activity, Disc, GripHorizontal, ChevronRight, Minimize2, Maximize2, Trash2,
+  Search, Pause, Volume2, VolumeX
 } from 'lucide-react';
 
 // --- SHARED COMPONENTS ---
 
-const StatusBar = () => (
-  <div className="w-full h-8 flex items-center justify-between px-6 text-[10px] font-tech text-white/40 select-none z-50">
+const StatusBar = ({ light = false }: { light?: boolean }) => (
+  <div className={`w-full h-8 flex items-center justify-between px-6 text-[10px] font-tech ${light ? 'text-white' : 'text-white/40'} select-none z-50 absolute top-0 left-0 right-0 pointer-events-none`}>
     <span className="font-bold tracking-widest">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
     <div className="flex items-center gap-3">
         <Signal size={12} />
@@ -38,7 +39,7 @@ const SystemBadge = ({ label, value, color }: { label: string, value: string, co
 // --- 1. Welcome Screen ---
 export const WelcomeScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   return (
-    <div className="flex flex-col items-center justify-center h-[90vh] w-full max-w-md animate-fadeIn relative">
+    <div className="flex flex-col items-center justify-center h-[100dvh] w-full max-w-md animate-fadeIn relative">
       <div className="absolute inset-0 bg-pink-500/10 blur-[100px] rounded-full pointer-events-none"></div>
       
       <div className="relative z-10 flex flex-col items-center text-center space-y-8 p-6">
@@ -95,9 +96,9 @@ export const AuthScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="w-full max-w-md animate-fadeIn p-4">
+    <div className="w-full max-w-md animate-fadeIn p-4 h-[100dvh] flex flex-col">
       <StatusBar />
-      <div className="mt-10">
+      <div className="mt-16 flex-1 flex flex-col justify-center">
           <div className={`${GLASS_PANEL} p-8`}>
             <div className="flex items-center justify-between mb-8">
                 <div>
@@ -213,14 +214,14 @@ export const HomeScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="w-full max-w-md h-screen flex flex-col relative overflow-hidden">
+    <div className="w-full max-w-md h-[100dvh] flex flex-col relative overflow-hidden">
       <StatusBar />
       
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24 scrollbar-hide space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 pt-12 pb-24 no-scrollbar space-y-5">
         
         {/* Header Widget */}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-2">
             <div>
                 <h2 className="text-2xl font-black font-tech text-white uppercase tracking-tighter">Command Center</h2>
                 <div className="flex items-center gap-2 mt-1">
@@ -269,8 +270,8 @@ export const HomeScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
                 <div className="p-5 flex flex-col h-full justify-between relative z-10">
                     <div className="bg-white/10 w-fit p-2 rounded-lg"><Film className="text-purple-400" size={20}/></div>
                     <div>
-                        <span className="text-white font-bold text-lg font-tech block">Social Feed</span>
-                        <span className="text-white/40 text-[10px]">Connect & Share</span>
+                        <span className="text-white font-bold text-lg font-tech block">Viki Social</span>
+                        <span className="text-white/40 text-[10px]">Full Immersion</span>
                     </div>
                 </div>
             </button>
@@ -344,90 +345,230 @@ export const HomeScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   );
 };
 
-// --- 5. SOCIAL VIKI SCREEN ---
+// --- 5. SOCIAL VIKI SCREEN (TikTok Clone) ---
 export const SocialVikiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'for_you' | 'following'>('for_you');
-  const [likedReels, setLikedReels] = useState<number[]>([]);
+  const [muted, setMuted] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Real stock video URLs for testing
+  const videos = [
+    {
+      id: 1,
+      url: "https://assets.mixkit.co/videos/preview/mixkit-futuristic-city-traffic-at-night-34563-large.mp4",
+      user: "cyber_drifter",
+      desc: "Neon nights in the matrix 🌃✨ #cyberpunk #viki #nightcity",
+      likes: "12.5K",
+      comments: "842",
+      shares: "1.2K"
+    },
+    {
+      id: 2,
+      url: "https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-glitch-effect-portrait-28151-large.mp4",
+      user: "glitch_queen_x",
+      desc: "System override initiated. 🔴 Do you feel the shift? #glitch #art #ai",
+      likes: "8.1K",
+      comments: "320",
+      shares: "500"
+    },
+    {
+      id: 3,
+      url: "https://assets.mixkit.co/videos/preview/mixkit-robot-toy-walking-on-a-table-41125-large.mp4",
+      user: "mech_master",
+      desc: "My new assistant is learning fast 🤖 #robotics #future #tech",
+      likes: "45K",
+      comments: "2.1K",
+      shares: "5K"
+    }
+  ];
 
-  const toggleLike = (id: number) => {
-    if (likedReels.includes(id)) {
-      setLikedReels(likedReels.filter(item => item !== id));
+  // Auto-play/pause logic using IntersectionObserver
+  useEffect(() => {
+    const options = {
+      root: containerRef.current,
+      threshold: 0.6 // Trigger when 60% of video is visible
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target.querySelector('video');
+        if (video) {
+          if (entry.isIntersecting) {
+            video.play().catch(e => console.log("Auto-play prevented"));
+          } else {
+            video.pause();
+            video.currentTime = 0; // Reset video when scrolled away
+          }
+        }
+      });
+    }, options);
+
+    const videoElements = document.querySelectorAll('.viki-video-container');
+    videoElements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleVideoTap = (e: React.MouseEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.muted) {
+        setMuted(false);
+        video.muted = false;
     } else {
-      setLikedReels([...likedReels, id]);
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
     }
   };
 
   return (
-    <div className="w-full max-w-md h-screen flex flex-col bg-black relative animate-fadeIn">
-      <StatusBar />
+    <div className="w-full h-[100dvh] bg-black text-white relative flex flex-col overflow-hidden">
+      <StatusBar light={true} />
       
-      {/* Top Overlay */}
-      <div className="absolute top-8 inset-x-0 z-20 flex justify-between items-center px-4 pt-2">
-         <ArrowLeft size={24} className="text-white drop-shadow-md cursor-pointer" onClick={() => onNavigate('home')}/>
-         <div className="flex gap-4 font-bold text-shadow-md">
-            <span onClick={() => setActiveTab('following')} className={`cursor-pointer transition-opacity ${activeTab === 'following' ? 'text-white opacity-100' : 'text-white/60'}`}>Following</span>
-            <span onClick={() => setActiveTab('for_you')} className={`cursor-pointer transition-opacity ${activeTab === 'for_you' ? 'text-white opacity-100' : 'text-white/60'}`}>For You</span>
-         </div>
-         <Bell size={24} className="text-white drop-shadow-md"/>
+      {/* Top Navigation Tab */}
+      <div className="absolute top-8 left-0 right-0 z-30 flex justify-center items-center gap-6 pt-2 text-shadow-md pointer-events-auto">
+        <span 
+          onClick={() => setActiveTab('following')} 
+          className={`cursor-pointer font-bold text-md transition-opacity duration-300 ${activeTab === 'following' ? 'text-white scale-110' : 'text-white/60'}`}
+        >
+          Following
+        </span>
+        <div className="w-[1px] h-3 bg-white/20"></div>
+        <span 
+          onClick={() => setActiveTab('for_you')} 
+          className={`cursor-pointer font-bold text-md transition-opacity duration-300 ${activeTab === 'for_you' ? 'text-white scale-110' : 'text-white/60'}`}
+        >
+          For You
+        </span>
       </div>
 
-      {/* Reel Feed */}
-      <div className="flex-1 overflow-y-auto snap-y snap-mandatory scrollbar-hide">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="w-full h-[calc(100vh-2rem)] snap-start relative bg-gray-900 overflow-hidden">
-            <img 
-              src={`https://picsum.photos/450/800?random=${i + 20}`} 
-              className="w-full h-full object-cover opacity-80"
-            />
+      {/* Search Icon Top Right */}
+      <div className="absolute top-10 right-5 z-30 pointer-events-auto">
+        <Search size={24} className="text-white drop-shadow-md cursor-pointer hover:scale-110 transition-transform"/>
+      </div>
+
+      {/* Main Feed Container */}
+      <div ref={containerRef} className="flex-1 w-full h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-black scroll-smooth">
+        {videos.map((item) => (
+          <div key={item.id} className="viki-video-container w-full h-full snap-start relative bg-gray-900 overflow-hidden flex items-center justify-center">
             
-            {/* Dark Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90"></div>
+            {/* Video Player */}
+            <video
+              src={item.url}
+              className="w-full h-full object-cover"
+              loop
+              muted={muted}
+              playsInline
+              onClick={handleVideoTap}
+            />
 
-            {/* Right Side Actions */}
-            <div className="absolute bottom-20 right-4 flex flex-col items-center gap-6 z-20">
-                 <div className="relative">
-                    <img src={`https://picsum.photos/50/50?random=${i}`} className="w-10 h-10 rounded-full border-2 border-white"/>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-500 rounded-full p-0.5">
-                        <Plus size={10} className="text-white"/>
+            {/* Mute Indicator Overlay */}
+            {muted && (
+                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <div className="bg-black/40 p-4 rounded-full backdrop-blur-sm animate-pulse">
+                        <VolumeX size={32} className="text-white/80"/>
+                     </div>
+                 </div>
+            )}
+
+            {/* Gradient Overlay for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80 pointer-events-none"></div>
+
+            {/* Right Sidebar Actions */}
+            <div className="absolute bottom-24 right-2 flex flex-col items-center gap-6 z-20 pb-4 pointer-events-auto">
+               {/* Profile Avatar */}
+               <div className="relative group cursor-pointer">
+                  <div className="w-12 h-12 rounded-full border border-white p-0.5 overflow-hidden transition-transform group-hover:scale-110">
+                    <img src={`https://picsum.photos/100/100?random=${item.id}`} className="w-full h-full rounded-full object-cover"/>
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-500 rounded-full p-0.5 border border-black transform transition-transform group-hover:rotate-180">
+                      <Plus size={10} className="text-white"/>
+                  </div>
+               </div>
+
+               {/* Like */}
+               <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                  <Heart size={32} className="text-white fill-white/10 group-hover:fill-pink-500 group-hover:text-pink-500 transition-colors drop-shadow-lg"/>
+                  <span className="text-white text-xs font-bold drop-shadow-md">{item.likes}</span>
+               </div>
+               
+               {/* Comment */}
+               <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                  <MessageCircle size={32} className="text-white fill-white/10 group-hover:text-cyan-400 transition-colors drop-shadow-lg"/>
+                  <span className="text-white text-xs font-bold drop-shadow-md">{item.comments}</span>
+               </div>
+
+               {/* Bookmark */}
+               <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                  <Bookmark size={32} className="text-white fill-white/10 group-hover:text-yellow-400 transition-colors drop-shadow-lg"/>
+                  <span className="text-white text-xs font-bold drop-shadow-md">Save</span>
+               </div>
+               
+               {/* Share */}
+               <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                  <Share2 size={32} className="text-white fill-white/10 group-hover:text-green-400 transition-colors drop-shadow-lg"/>
+                  <span className="text-white text-xs font-bold drop-shadow-md">{item.shares}</span>
+               </div>
+
+               {/* Rotating Music Disc */}
+               <div className="w-12 h-12 bg-gray-800 rounded-full border-[6px] border-gray-900 flex items-center justify-center animate-spin-slow overflow-hidden mt-2 relative">
+                   <div className="absolute inset-0 bg-gradient-to-tr from-gray-800 to-black rounded-full"></div>
+                   <img src={`https://picsum.photos/50/50?random=${item.id + 50}`} className="w-7 h-7 rounded-full object-cover relative z-10"/>
+               </div>
+            </div>
+
+            {/* Bottom Info Section */}
+            <div className="absolute bottom-4 left-0 right-16 z-20 px-4 pb-16 flex flex-col justify-end items-start pointer-events-none">
+                <div className="pointer-events-auto cursor-pointer mb-2">
+                   <h3 className="font-bold text-lg text-white drop-shadow-md hover:underline">@{item.user}</h3>
+                </div>
+                <div className="pointer-events-auto">
+                  <p className="text-sm text-white/90 leading-snug drop-shadow-md mb-2">
+                      {item.desc}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 opacity-90">
+                    <Music2 size={14} className="text-white animate-pulse-fast"/>
+                    <div className="w-32 overflow-hidden">
+                       <span className="text-xs font-mono text-white scrolling-text whitespace-nowrap">Original Sound - VIKI AI Neural Mix • Cyber Beats Vol.1</span>
                     </div>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => toggleLike(i)}>
-                    <Heart size={30} className={`${likedReels.includes(i) ? 'fill-pink-500 text-pink-500' : 'text-white'} transition-colors drop-shadow-md`}/>
-                    <span className="text-white text-xs font-bold shadow-black">4.5K</span>
-                 </div>
-                 
-                 <div className="flex flex-col items-center gap-1">
-                    <MessageCircle size={30} className="text-white drop-shadow-md"/>
-                    <span className="text-white text-xs font-bold shadow-black">842</span>
-                 </div>
-                 
-                 <div className="flex flex-col items-center gap-1">
-                    <Share2 size={30} className="text-white drop-shadow-md"/>
-                    <span className="text-white text-xs font-bold shadow-black">Share</span>
-                 </div>
-
-                 <div className="w-10 h-10 bg-gray-800 rounded-full border border-white/30 flex items-center justify-center animate-spin-slow">
-                     <Disc size={20} className="text-white"/>
-                 </div>
-            </div>
-
-            {/* Bottom Info */}
-            <div className="absolute bottom-6 left-4 right-16 z-20 text-white">
-                <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-bold text-lg drop-shadow-md">@cyber_creator_{i}</h3>
-                    {i === 1 && <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold animate-pulse">LIVE</span>}
-                </div>
-                <p className="text-sm opacity-90 leading-relaxed mb-3 line-clamp-2">
-                    Testing the new VIKI AI neural filters. This vibe is insane! 🌐✨ <span className="font-bold">#cyberpunk #ai #viki</span>
-                </p>
-                <div className="flex items-center gap-2 opacity-80">
-                    <Music2 size={14} className="animate-pulse"/>
-                    <span className="text-xs font-mono scrolling-text">Original Audio - VIKI AI Soundscape • </span>
                 </div>
             </div>
+
           </div>
         ))}
+      </div>
+
+      {/* Social Bottom Navigation Bar (Authentic TikTok Style) */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-black border-t border-white/10 z-40 flex items-center justify-around px-2 pb-1 pointer-events-auto">
+          <div onClick={() => onNavigate('home')} className="flex flex-col items-center gap-1 cursor-pointer group w-14">
+             <Home size={22} className="text-white/60 group-hover:text-white transition-colors"/>
+             <span className="text-[9px] text-white/60 group-hover:text-white">Home</span>
+          </div>
+          <div className="flex flex-col items-center gap-1 cursor-pointer group w-14">
+             <UserPlus size={22} className="text-white/60 group-hover:text-white transition-colors"/>
+             <span className="text-[9px] text-white/60 group-hover:text-white">Friends</span>
+          </div>
+          
+          {/* Central Create Button */}
+          <div onClick={() => onNavigate('video_studio')} className="relative cursor-pointer hover:scale-105 transition-transform px-4">
+             <div className="absolute left-0.5 bg-cyan-400 w-9 h-7 rounded-lg"></div>
+             <div className="absolute right-0.5 bg-pink-600 w-9 h-7 rounded-lg"></div>
+             <div className="relative bg-white w-9 h-7 rounded-lg flex items-center justify-center">
+                 <Plus size={18} className="text-black font-bold"/>
+             </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-1 cursor-pointer group w-14">
+             <MessageCircle size={22} className="text-white/60 group-hover:text-white transition-colors"/>
+             <span className="text-[9px] text-white/60 group-hover:text-white">Inbox</span>
+          </div>
+          <div onClick={() => onNavigate('profile')} className="flex flex-col items-center gap-1 cursor-pointer group w-14">
+             <User size={22} className="text-white/60 group-hover:text-white transition-colors"/>
+             <span className="text-[9px] text-white/60 group-hover:text-white">Profile</span>
+          </div>
       </div>
     </div>
   );
@@ -438,7 +579,7 @@ export const WebBuilderScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
     const [viewMode, setViewMode] = useState<'visual' | 'code'>('visual');
 
     return (
-        <div className="w-full max-w-md h-screen flex flex-col bg-[#0d0d0d] animate-fadeIn">
+        <div className="w-full max-w-md h-[100dvh] flex flex-col bg-[#0d0d0d] animate-fadeIn">
             <StatusBar />
             {/* Header */}
             <div className="p-4 flex items-center justify-between border-b border-white/5 bg-[#0a0a0a]">
@@ -466,7 +607,7 @@ export const WebBuilderScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
 
             <div className="flex-1 overflow-hidden flex flex-col">
                 {viewMode === 'visual' ? (
-                    <div className="p-4 space-y-4 overflow-y-auto">
+                    <div className="p-4 space-y-4 overflow-y-auto no-scrollbar">
                         <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl flex items-start gap-3">
                             <Sparkles className="text-blue-400 shrink-0 mt-1" size={20}/>
                             <div>
@@ -505,7 +646,7 @@ export const WebBuilderScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 bg-[#0d0d0d] p-4 font-mono text-xs overflow-y-auto">
+                    <div className="flex-1 bg-[#0d0d0d] p-4 font-mono text-xs overflow-y-auto no-scrollbar">
                         <div className="flex gap-2 mb-4 text-gray-500">
                              <span>index.html</span>
                              <span className="text-white/20">|</span>
@@ -534,7 +675,7 @@ export const WebBuilderScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
 // --- SETTINGS SCREEN ---
 export const SettingsScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-md animate-fadeIn h-screen flex flex-col bg-black">
+        <div className="w-full max-w-md animate-fadeIn h-[100dvh] flex flex-col bg-black">
             <StatusBar />
             <div className="flex items-center gap-4 p-4 mb-4 border-b border-white/10">
                 <button onClick={() => onNavigate('profile')} className="bg-white/5 p-2 rounded-lg text-white hover:bg-white/10">
@@ -543,7 +684,7 @@ export const SettingsScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
                 <h2 className="text-2xl font-bold text-white font-tech uppercase">System Config</h2>
             </div>
 
-            <div className="space-y-4 px-4 flex-1 overflow-y-auto">
+            <div className="space-y-4 px-4 flex-1 overflow-y-auto no-scrollbar">
                 <div className={`${GLASS_PANEL} p-0 overflow-hidden`}>
                     <div className="p-4 border-b border-white/5 bg-white/5">
                         <h3 className="text-white font-bold flex items-center gap-2 font-tech tracking-wider"><Bell size={16} className="text-pink-400"/> NOTIFICATIONS</h3>
@@ -621,7 +762,7 @@ export const VideoStudioScreen: React.FC<NavigationProps> = ({ onNavigate }) => 
     };
 
     return (
-        <div className="w-full h-screen bg-[#050505] flex flex-col relative overflow-hidden font-tech text-white">
+        <div className="w-full h-[100dvh] bg-[#050505] flex flex-col relative overflow-hidden font-tech text-white">
             {/* Professional Top Bar */}
             <div className="h-12 border-b border-white/10 flex items-center justify-between px-4 bg-[#0a0a0a]">
                 <div className="flex items-center gap-4">
@@ -686,7 +827,7 @@ export const VideoStudioScreen: React.FC<NavigationProps> = ({ onNavigate }) => 
                              <button className="hover:text-white"><Plus size={14}/></button>
                         </div>
                         {/* Tracks */}
-                        <div className="flex-1 p-2 space-y-1 overflow-y-auto">
+                        <div className="flex-1 p-2 space-y-1 overflow-y-auto no-scrollbar">
                             <div className="h-8 bg-blue-900/20 border border-blue-500/20 rounded flex items-center px-2 text-[10px] text-blue-400 w-3/4 relative">
                                 Video Track 1
                                 <div className="absolute right-0 top-0 bottom-0 w-1 bg-blue-500 cursor-ew-resize"></div>
@@ -702,7 +843,7 @@ export const VideoStudioScreen: React.FC<NavigationProps> = ({ onNavigate }) => 
                 </div>
 
                 {/* Right Properties Panel */}
-                <div className="w-64 bg-[#080808] border-l border-white/5 p-4 overflow-y-auto">
+                <div className="w-64 bg-[#080808] border-l border-white/5 p-4 overflow-y-auto no-scrollbar">
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Properties</h3>
                     
                     <div className="space-y-4">
@@ -743,11 +884,33 @@ export const VideoStudioScreen: React.FC<NavigationProps> = ({ onNavigate }) => 
 
 // --- 6. AI Chat Screen ---
 export const AiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
-  const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string}[]>([
-    { role: 'ai', text: 'SYSTEM: NEURAL LINK ESTABLISHED. HOW MAY I ASSIST?' }
-  ]);
+  const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string}[]>(() => {
+      try {
+          const saved = localStorage.getItem('viki_chat_history');
+          return saved ? JSON.parse(saved) : [{ role: 'ai', text: 'SYSTEM: NEURAL LINK ESTABLISHED. HOW MAY I ASSIST?' }];
+      } catch (e) {
+          return [{ role: 'ai', text: 'SYSTEM: NEURAL LINK ESTABLISHED. HOW MAY I ASSIST?' }];
+      }
+  });
+  
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+      scrollToBottom();
+      localStorage.setItem('viki_chat_history', JSON.stringify(messages));
+  }, [messages]);
+
+  const handleClearMemory = () => {
+      const resetState = [{ role: 'ai' as const, text: 'SYSTEM: MEMORY PURGED. DATABASE RESET.' }];
+      setMessages(resetState);
+      localStorage.setItem('viki_chat_history', JSON.stringify(resetState));
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -772,7 +935,7 @@ export const AiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="w-full max-w-md h-screen flex flex-col bg-black animate-fadeIn">
+    <div className="w-full max-w-md h-[100dvh] flex flex-col bg-black animate-fadeIn">
       <StatusBar />
       <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#0a0a0a]">
         <div className="flex items-center gap-3">
@@ -787,12 +950,17 @@ export const AiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
-        <button onClick={() => onNavigate('home')} className="text-gray-500 hover:text-white transition-colors">
-          <X size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+            <button onClick={handleClearMemory} className="text-gray-500 hover:text-red-400 transition-colors p-2" title="Wipe Memory">
+                <Trash2 size={18} />
+            </button>
+            <button onClick={() => onNavigate('home')} className="text-gray-500 hover:text-white transition-colors p-2">
+                <X size={20} />
+            </button>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
             <div className={`max-w-[85%] p-4 rounded-xl relative ${
@@ -814,6 +982,7 @@ export const AiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
              </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
@@ -844,7 +1013,7 @@ export const AiScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
 // --- 7. Profile Screen ---
 export const ProfileScreen: React.FC<NavigationProps> = ({ onNavigate }) => {
   return (
-    <div className="w-full max-w-md h-screen flex flex-col bg-black animate-fadeIn">
+    <div className="w-full max-w-md h-[100dvh] flex flex-col bg-black animate-fadeIn">
       <StatusBar />
       <div className="relative h-48 bg-gray-900">
           <div className="absolute inset-0 bg-gradient-to-b from-purple-900/50 to-black"></div>
